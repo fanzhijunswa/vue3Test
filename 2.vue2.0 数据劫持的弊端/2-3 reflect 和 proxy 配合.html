@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        const targetObj = { name: '樊志军', age: 12 }
+        const proxyObj = new Proxy(targetObj, {
+            get(target, key) { // 查 的 api
+                console.log(`成功访问到了${key}属性`)
+                return Reflect.get(target,key)
+            },
+            set(target, key, value) {  //增、改的api
+                Reflect.set(target,key,value)
+                console.log(`成功的将${key}属性值设为${value}`)
+            },
+            deleteProperty(target, key) { // 删的 api
+                console.log(`当前要删除的属性是：${key}`)
+                return Reflect.deleteProperty(targetObj,key)
+            }
+        })
+
+        proxyObj.sex = '男'
+        delete proxyObj.name
+        console.log(proxyObj)
+        console.log(targetObj)
+
+        // vue 3 底层 是用 Reflect这个 对象来进行对源对象的修改，映射，Reflect 这个对象目前有三个钩子，和proxy对应，get set deleteProperty
+    </script>
+</body>
+
+</html>

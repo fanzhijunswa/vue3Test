@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=`, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        /* 
+        const targetObj = {name: '樊志军',age: 12}
+        const proxyObj = new Proxy(targetObj,{})
+        
+        proxyObj.age = 13
+        console.log(targetObj) 
+        console.log(proxyObj) // 代理对象被修改后，源对象也会发生对应的变化，这个和Object.defineProperty是一样的，接下来看下面的比对 */
+
+        const targetObj = {name: '樊志军',age: 12}
+        const proxyObj = new Proxy(targetObj,{
+            get(target,key) { // 查 的 api
+                console.log(`成功访问到了${key}属性`)
+                return targetObj[key]
+            },
+            set(target,key,value) {  //增、改的api
+                targetObj[key] = value
+                console.log(`成功的将${key}属性值设为${value}`)
+            },
+            deleteProperty(target,key) { // 删的 api
+                console.log(`当前要删除的属性是：${key}`)
+                return delete target[key]
+            }
+        })
+        
+        proxyObj.age = 13
+        proxyObj.sex = '男'
+        const delFlag = delete proxyObj.sex
+        if(delFlag) console.log('该属性已删除')
+        console.log(proxyObj)
+
+    </script>
+</body>
+</html>

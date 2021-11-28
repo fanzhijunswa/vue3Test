@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        /* Vue2.0 数据劫持原理
+
+const obj = {_name: '樊志军'}
+
+Object.defineProperty(obj,'name',{
+   get() {
+       console.log('已经访问name属性了')
+       return this._name
+   },
+   set(val) {
+       this._name = val
+       console.log('更新成功，下一步该广播通知所有模板去更新数据')
+   }
+})
+
+console.log(obj)
+obj.name = '张三'
+console.log(obj) */
+    </script>
+    <script>
+        // 之前的vue 2.0就是通过这种方式，递归遍历所有data中的属性，并将data中的属性进行数据劫持，但是是有弊端的，因为遍历data中的所有属性肯定是对data中已经定义好的属性进行Object.defineProperty劫持，但是想动态添加一些data中没有的属性的话，
+        // 数据劫持就没有作用了，如下：
+
+
+        /*  (1)不能动态代理新增属性 
+        
+        const obj = {_age: 13}
+        
+        Object.defineProperty(obj,'age',{
+            get() {
+                console.log('已经访问age属性了')
+                return this._age
+            },
+            set(val){
+                this._age = val
+                console.log('更新成功，下一步该广播通知所有模板去更新数据')
+            }
+        })
+        
+        obj.age++;
+        obj.sex = '男' // 这种动态添加的属性，是没有被数据劫持的，所以是不会触发set钩子的，所以这是 Object.defineProperty 响应式的第一大问题 
+        
+        */
+
+
+        /* (2)捕获不到删除的行为，无法驱动视图，无法被set钩子捕捉
+        const obj = { name: '樊志军', age: 12 }
+        const proxyObj = {}
+
+        Object.defineProperty(proxyObj, 'name', {
+            configurable: true, // 允许属性进行被删除操作
+            enumerable: true, //劫持属性可枚举，可以访问到
+            get() {
+                console.log('已经访问name属性了')
+                return obj.name
+            },
+            set(val) {
+                obj.name = val
+                console.log('更新成功，下一步该广播通知所有模板去更新数据')
+            }
+        })
+        Object.defineProperty(proxyObj, 'age', {
+            configurable: true, // 允许属性进行被删除操作
+            enumerable: true, //劫持属性可枚举，可以访问到
+            get() {
+                console.log('已经访问name属性了')
+                return obj.age
+            },
+            set(val) {
+                obj.age = val
+                console.log('更新成功，下一步该广播通知所有模板去更新数据')
+            }
+        })
+        proxyObj.name = '李四'
+        delete proxyObj.age
+        console.log(proxyObj) 
+        console.log(obj)
+        */
+        // 综上所述，哪怕删除掉劫持的属性，defineProperty也无法捕捉到这个删除操作，所以无法更新视图，无法触发set方法
+
+
+        /*  (3) 只能捕捉到所劫持的属性，未劫持的属性，动态添加的属性，是不具备 响应式的，无法触发任何 set 以及 get 
+
+            const targetObj = {name: '樊志军',age: 12}
+            const proxyObj = {}
+            Object.defineProperty(proxyObj,'name',{
+                configurable: true,
+                enumerable: true,
+                get() {
+                    console.log('已经访问name属性了')
+                    return targetObj.name
+                },
+                set(val){
+                    targetObj.name = val
+                    console.log('更新成功，下一步该广播通知所有模板去更新数据')
+                }
+            })
+
+            Object.defineProperty(proxyObj,'age',{
+                configurable: true,
+                enumerable: true,
+                get() {
+                    console.log('已经访问age属性了')
+                    return targetObj.age
+                },
+                set(val){
+                    targetObj.age = val
+                    console.log('更新成功，下一步该广播通知所有模板去更新数据')
+                }
+            })
+
+            proxyObj.sex = '男'
+            console.log(proxyObj) 
+        
+        */
+
+    </script>
+</body>
+
+</html>
